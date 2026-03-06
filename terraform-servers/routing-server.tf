@@ -1,69 +1,163 @@
 resource "libvirt_volume" "routing_openstack_disk" {
-  name             = "routing_openstack_disk.qcow2"
-  pool             = var.DEFAULT_DISK_POOL
-  base_volume_name = var.BASE_VOLUME_NAME
-  base_volume_pool = var.BASE_IMAGE_POOL
-  format           = "qcow2"
-  size             = 25 * 1024 * 1024 * 1024
-}
+  name     = "routing_openstack_disk.qcow2"
+  pool     = var.DEFAULT_DISK_POOL
+  capacity = 25 * 1024 * 1024 * 1024
 
-
-# Define template for cloud_init
-data "template_file" "user_data_os_routing" {
-  vars = {
-    hostname       = "os-routing"
-    ssh_public_key = local.ssh_public_key
+  target = {
+    format = {
+      type = "qcow2"
+    }
   }
-  template = file("${path.module}/cloud-init-routing.cfg")
-}
 
-# Network configuration
-data "template_file" "network_config_routing" {
-  template = file("${path.module}/network-config-routing.cfg")
+  backing_store = {
+    type = "file"
+    path = "${var.BASE_IMAGE_POOL_PATH}/${var.BASE_VOLUME_NAME}"
+    format = {
+      type = "qcow2"
+    }
+  }
 }
 
 # Use CloudInit to add the instance
 resource "libvirt_cloudinit_disk" "cloudinit_os_routing" {
-  name           = "cloudinit_os_routing.iso"
-  pool           = var.CLOUD_INIT_POOL
-  user_data      = data.template_file.user_data_os_routing.rendered
-  network_config = data.template_file.network_config_routing.rendered
+  name = "cloudinit_os_routing"
+
+  meta_data = jsonencode({
+    "instance-id"    = "os-routing"
+    "local-hostname" = "os-routing"
+  })
+
+  user_data = templatefile("${path.module}/cloud-init-routing.cfg", {
+    hostname       = "os-routing"
+    ssh_public_key = local.ssh_public_key
+  })
+
+  network_config = file("${path.module}/network-config-routing.cfg")
+}
+
+
+resource "libvirt_volume" "cloudinit_os_routing_vol" {
+  name = "cloudinit_os_routing.iso"
+  pool = var.CLOUD_INIT_POOL
+
+  create = {
+    content = {
+      url = libvirt_cloudinit_disk.cloudinit_os_routing.path
+    }
+  }
 }
 
 # Define KVM domain to create
 resource "libvirt_domain" "os-routing" {
-  name   = "os-routing"
-  memory = "2048"
-  vcpu   = 2
+  name        = "os-routing"
+  running     = true
+  memory      = 2048
+  memory_unit = "MiB"
+  vcpu        = 2
+  type        = "kvm"
 
-  network_interface {
-    network_name = "default"
-    mac          = "52:54:00:22:be:05"
-  }
-
-  network_interface {
-    network_name = "osnet"
-  }
-
-  disk {
-    volume_id = libvirt_volume.routing_openstack_disk.id
+  os = {
+    type         = "hvm"
+    type_arch    = "x86_64"
+    type_machine = "q35"
   }
 
   cpu = {
     mode = "host-passthrough"
   }
 
-  cloudinit = libvirt_cloudinit_disk.cloudinit_os_routing.id
-
-  console {
-    type        = "pty"
-    target_type = "serial"
-    target_port = "0"
+  features = {
+    acpi = true
+    apic = {
+      eoi = "on"
+    }
+    pae = true
   }
 
-  graphics {
-    type        = "spice"
-    listen_type = "address"
-    autoport    = true
+  devices = {
+    disks = [
+      {
+        source = {
+          volume = {
+            pool   = libvirt_volume.routing_openstack_disk.pool
+            volume = libvirt_volume.routing_openstack_disk.name
+          }
+        }
+        target = {
+          dev = "vda"
+          bus = "virtio"
+        }
+        driver = {
+          name = "qemu"
+          type = "qcow2"
+        }
+      },
+      # Cloud-init ISO
+      {
+        device = "cdrom"
+        source = {
+          volume = {
+            pool   = libvirt_volume.cloudinit_os_routing_vol.pool
+            volume = libvirt_volume.cloudinit_os_routing_vol.name
+          }
+        }
+        target = {
+          dev = "sda"
+          bus = "usb"
+        }
+        driver = {
+          name = "qemu"
+          type = "raw"
+        }
+      }
+    ]
+
+    interfaces = [
+      # NAT virtual network — source.network is correct
+      {
+        type  = "network"
+        mac   = { address = "52:54:00:22:be:05" }
+        model = { type = "virtio" }
+        source = {
+          network = {
+            network = "default"
+          }
+        }
+      },
+      # bridge network (br-os) — must use source.bridge
+      {
+        type  = "bridge"
+        model = { type = "virtio" }
+        source = {
+          bridge = {
+            bridge = "br-os"
+          }
+        }
+      }
+    ]
+
+    consoles = [
+      {
+        target = {
+          type = "serial"
+          port = 0
+        }
+      }
+    ]
+
+    graphics = [
+      {
+        vnc = {
+          auto_port = true
+          listen    = "127.0.0.1"
+        }
+      }
+    ]
+  }
+
+  # Workaround for provider bug: source.network is read back as null after apply
+  # https://github.com/dmacvicar/terraform-provider-libvirt/issues
+  lifecycle {
+    ignore_changes = [devices]
   }
 }

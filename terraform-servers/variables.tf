@@ -13,6 +13,11 @@ variable "BASE_IMAGE_POOL" {
   type    = string
 }
 
+variable "BASE_IMAGE_POOL_PATH" {
+  default = "/data/libvirt/base-image-pool"
+  type    = string
+}
+
 variable "CLOUD_INIT_POOL" {
   default = "cloud-init-pool"
   type    = string
