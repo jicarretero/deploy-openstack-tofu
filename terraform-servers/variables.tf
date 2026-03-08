@@ -42,3 +42,8 @@ variable "COMPUTES_VCPUS" {
   default = 6
   type    = number
 }
+
+variable "VMS_RUNNING" {
+  default = true
+  type    = bool
+}

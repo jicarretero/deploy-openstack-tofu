@@ -65,7 +65,7 @@ resource "libvirt_volume" "cloudinit_os_admin_vol" {
 # Define KVM domain to create
 resource "libvirt_domain" "os-admin" {
   name        = "os-admin"
-  running     = true
+  running     = var.VMS_RUNNING
   memory      = var.ADMIN_RAM
   memory_unit = "MiB"
   vcpu        = var.ADMIN_VCPUS

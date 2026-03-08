@@ -56,7 +56,7 @@ resource "libvirt_volume" "cloudinit_os_compute_vol" {
 # Define KVM domain to create
 resource "libvirt_domain" "os-compute" {
   count       = var.COMPUTES_COUNT
-  running     = true
+  running     = var.VMS_RUNNING
   name        = "os-compute-${count.index}"
   memory      = 16384
   memory_unit = "MiB"

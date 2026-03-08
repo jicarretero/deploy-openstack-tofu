@@ -50,7 +50,7 @@ resource "libvirt_volume" "cloudinit_os_routing_vol" {
 # Define KVM domain to create
 resource "libvirt_domain" "os-routing" {
   name        = "os-routing"
-  running     = true
+  running     = var.VMS_RUNNING
   memory      = 2048
   memory_unit = "MiB"
   vcpu        = 2
