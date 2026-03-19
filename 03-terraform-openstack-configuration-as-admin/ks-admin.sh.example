@@ -1,0 +1,8 @@
+export OS_USERNAME="admin"
+export OS_PROJECT_NAME="admin"
+export OS_PASSWORD=$(awk '$1 ~ /keystone_admin_password/ {print $2}' /etc/kolla/passwords.yml)
+export OS_AUTH_URL=http://os-admin.openstack.mine:5000
+export OS_REGION_NAME="corporario"
+export OS_PROJECT_DOMAIN_ID="default"
+export OS_INTERFACE=public
+export OS_IDENTITY_API_VERSION=3

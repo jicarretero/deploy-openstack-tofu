@@ -43,7 +43,7 @@ resource "libvirt_domain" "os-compute" {
   count  = var.COMPUTES_COUNT
   name   = "os-compute-${count.index}"
   memory = "16384"
-  vcpu   = var.COMPUTES_VCPU
+  vcpu   = var.COMPUTES_VCPUS
 
   network_interface {
     network_name = "osnet"

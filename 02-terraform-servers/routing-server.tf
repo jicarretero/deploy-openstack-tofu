@@ -66,4 +66,5 @@ resource "libvirt_domain" "os-routing" {
     listen_type = "address"
     autoport    = true
   }
+
 }

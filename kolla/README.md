@@ -68,13 +68,18 @@ In our case, my configuration file is, in this repo
 ```
 
 ### Configure things for the installation....
-The parts of Openstack that I am installing are:
+I have copied the `globals.yml`file locally to `./etc/kolla/globals.yml` -- I use to create a symlink so it is in its place -
+
+```bash
+ln -s $PWD/etc/kolla/globals.yml /etc/kolla/globals.yml
+```
+
+The parts of Openstack that I am installing are (the easy way):
 
 - **openstack_core** - This enables *nova*, *heat* and *horizon* (nova to create/destroy virtual servers, heat for template orchestration and horizon the web console).
 - **glance** - To store and retrieve base images and virtual server snapshots.
 - **keystone** - The authentication and authorization server.
 - **cinder** - To have external volumes in virtual servers.
-- **magnum** - A container orchestration engine
 - **neutron** - The network manager in Openstack. I've also configured Virtual Distributed Routers.
 
 As well as other components which serve the communication between processes (*rabbitmq*), logs collector (*fluentd*), the database for the Openstack components (*MariaDB*),etc.
@@ -113,7 +118,32 @@ openstack_region_name: "corporario"
 
 Anyway, please, read the `globals.yml` file, it explains itself pretty well.
 
+#### Configurations with Load Balancer (Octavia) and managed kubernetes (magnum)-
+
+At the beginning of the file `globals.yml`, I added these few lines:
+
+```yaml
+## JICG - Activate octavia and Magnum...
+# The next 4 lines are to deploy Octavia (load balancers) and Magnum 
+# (an openstack managed openstack)
+# neutron_plugin_agent: "ovn"
+# enable_redis: true
+# enable_octavia: true
+# enable_magnum: true
+
+# The next 4 lines are to deploy without Octavia and Magnum.
+neutron_plugin_agent: "openvswitch"
+enable_redis: false
+enable_octavia: false
+enable_magnum: false
+```
+
+If you need to add Octavia and Magnun, just tweak this file.
+
+
 ## The installation process
+
+You can skip this if you are not an Arch user.
 
 Before continuing, I must admit that I had to do a "small" patch to make the installation "fluently" work. I added 3 lines at the end of the file `~/.venv/kolla-ansible/share/kolla-ansible/ansible/roles/prechecks/vars/main.yml` – It simply complained in the "prechecks" that Archlinux is not supported... now it is. At least in my laptop. BTW I use Arch.
 

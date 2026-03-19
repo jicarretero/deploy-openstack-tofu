@@ -8,6 +8,20 @@
 # Dummy variable to allow Ansible to accept this file.
 workaround_ansible_issue_8743: true
 
+## JICG - Activate octavia and Magnum...
+# The next 4 lines are to deploy Octavia (load balancers) and Magnum 
+# (an openstack managed openstack)
+# neutron_plugin_agent: "ovn"
+# enable_redis: true
+# enable_octavia: true
+# enable_magnum: true
+
+# The next 4 lines are to deploy without Octavia and Magnum.
+neutron_plugin_agent: "openvswitch"
+enable_redis: false
+enable_octavia: false
+enable_magnum: false
+
 ###################
 # Ansible options
 ###################
@@ -161,7 +175,8 @@ tunnel_interface: "ens4.40"
 # addresses for that reason.
 neutron_external_interface: "ens5.50"
 # Valid options are [ openvswitch, ovn ]
-neutron_plugin_agent: "openvswitch"
+# jicg - preferred for new installations with Octavia
+# neutron_plugin_agent: "ovn"
 # Valid options are [ internal, infoblox ]
 #neutron_ipam_driver: "internal"
 
@@ -314,7 +329,7 @@ openstack_region_name: "corporario"
 # Enable core OpenStack services. This includes:
 # glance, keystone, neutron, nova, heat, and horizon.
 enable_openstack_core: true
-
+# enable_redis: false
 # These roles are required for Kolla to be operation, however a savvy deployer
 # could disable some of these required roles and run their own services.
 enable_glance: true
@@ -322,7 +337,7 @@ enable_hacluster: false
 enable_haproxy: false
 enable_keepalived: "{{ enable_haproxy | bool }}"
 enable_keystone: true
-enable_mariadb: true
+nable_mariadb: true
 enable_memcached: true
 enable_neutron: true
 enable_nova: "{{ enable_openstack_core | bool }}"
@@ -385,7 +400,7 @@ enable_ironic_prometheus_exporter: "{{ enable_ironic | bool and enable_prometheu
 enable_ironic_pxe_filter: false
 enable_iscsid: "{{ enable_cinder | bool and enable_cinder_backend_iscsi | bool }}"
 enable_kuryr: false
-enable_magnum: true
+# enable_magnum: false
 enable_manila: false
 enable_manila_backend_generic: false
 enable_manila_backend_hnas: false
@@ -413,7 +428,7 @@ enable_neutron_infoblox_ipam_agent: false
 enable_neutron_port_forwarding: false
 enable_nova_serialconsole_proxy: false
 enable_nova_ssh: true
-enable_octavia: false
+# enable_octavia: true
 enable_octavia_driver_agent: "{{ enable_octavia | bool and neutron_plugin_agent == 'ovn' }}"
 enable_octavia_jobboard: "{{ enable_octavia | bool and 'amphora' in octavia_provider_drivers }}"
 enable_opensearch: "{{ enable_central_logging | bool or enable_osprofiler | bool or (enable_cloudkitty | bool and cloudkitty_storage_backend == 'opensearch') }}"
