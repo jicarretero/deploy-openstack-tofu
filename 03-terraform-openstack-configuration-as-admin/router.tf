@@ -1,7 +1,8 @@
 # --centralized => distributed = false
 resource "openstack_networking_router_v2" "rt_ext" {
-  name = "rt-ext"
+  name                = var.router_name
   external_network_id = openstack_networking_network_v2.ext_net.id
+  distributed         = false
 }
 
 # Router interface to subnet

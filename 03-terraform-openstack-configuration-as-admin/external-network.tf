@@ -1,8 +1,8 @@
 # Create an internal Network -- A shared network for everybody
 resource "openstack_networking_network_v2" "ext_net" {
-  name           = "ext-net"
+  name           = var.external_network_name
   admin_state_up = "true"
-  external = "true"
+  external       = "true"
   segments {
     network_type     = "flat"
     physical_network = "physnet1"
@@ -16,16 +16,16 @@ resource "openstack_networking_network_v2" "ext_net" {
 
 # Create a Subnetwork in our shared network
 resource "openstack_networking_subnet_v2" "sub_ext_net" {
-  name       = "sub-ext-net"
-  network_id = openstack_networking_network_v2.ext_net.id
-  cidr       = "10.202.254.0/24"
-  ip_version = 4
-  gateway_ip = "10.202.254.1"
-  enable_dhcp = true
-  dns_nameservers = ["8.8.8.8"]
+  name            = var.external_subnet_name
+  network_id      = openstack_networking_network_v2.ext_net.id
+  cidr            = var.external_subnet_cidr
+  ip_version      = 4
+  gateway_ip      = var.external_subnet_gateway
+  enable_dhcp     = true
+  dns_nameservers = var.external_subnet_dns_nameservers
   allocation_pool {
-        end   = "10.202.254.254"
-        start = "10.202.254.16"
+    end   = var.external_subnet_allocation_pool_end
+    start = var.external_subnet_allocation_pool_start
   }
 }
 

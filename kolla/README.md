@@ -120,7 +120,7 @@ Anyway, please, read the `globals.yml` file, it explains itself pretty well.
 
 #### Configurations with Load Balancer (Octavia) and managed kubernetes (magnum)-
 
-At the beginning of the file `globals.yml`, I added these few lines:
+At the beginning of the file `globals.yml`, when I want to be able to run "Octavia" and "Magnum", I add these few lines -- But if you don't know what they are, you can forget about them and work without this configuration:
 
 ```yaml
 ## JICG - Activate octavia and Magnum...

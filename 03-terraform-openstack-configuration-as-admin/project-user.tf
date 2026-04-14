@@ -1,24 +1,3 @@
-# Set variables
-variable "user_password" {
-  description = "Password of the user user"
-  type        = string
-  sensitive   = true
-
-  # Remove the following line and 'export TF_VAR_user_password="mysecretpassword"' instead
-  default = "mysecretpassword"
-}
-
-variable "project_name" {
-  type = string
-  default = "jicg-project"
-}
-
-variable "user_name" {
-  type = string
-  default = "jicg"
-}
-
-
 # openstack pproject create --domain default user_project
 resource "openstack_identity_project_v3" "user_project" {
   name        = var.project_name
@@ -38,7 +17,7 @@ resource "openstack_identity_user_v3" "user" {
 # Openstack cli, this hcl snippet would translate to:
 #     openstack role show member
 data "openstack_identity_role_v3" "member" {
-    name = "member"
+  name = "member"
 }
 
 # Openstack role assignment list
